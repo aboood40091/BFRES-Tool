@@ -59,6 +59,8 @@ setup(
 
 print('>> Attempting to copy required files...')
 shutil.copy('COPYING', dir_)
+shutil.copy('DDStoGTX.bat', dir_)
+shutil.copy('GTXtoDDS.bat', dir_)
 shutil.copy('tileMode.txt', dir_)
 print('>> Files copied!')
 
