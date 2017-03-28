@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
+# Version 0.2
 # Copyright © 2017 AboodXD
 
 # This file is part of BFRES Tool.
@@ -88,6 +89,46 @@ def GTXtoBFRES(ftex_pos, gtx, bfres):
         gfd = gfd1.read()
         gfd1.close()
 
+    if inb[:4] != b"FRES":
+        print("")
+        print("Invalid BFRES header!")
+        print("")
+        print("Exiting in 5 seconds...")
+        time.sleep(5)
+        sys.exit(1)
+
+    if gfd[:4] != b"Gfx2":
+        print("")
+        print("Invalid GTX header!")
+        print("")
+        print("Exiting in 5 seconds...")
+        time.sleep(5)
+        sys.exit(1)
+
+    if ((gfd[0x60:0x64] != inb[ftex_pos+0x24:ftex_pos+0x28]) or (gfd[0x60:0x64] != gfd[0xF0:0xF4])):
+        print("")
+        print("Data size mismatch")
+        print("")
+        print("Exiting in 5 seconds...")
+        time.sleep(5)
+        sys.exit(1)
+
+    if gfd[0x68:0x6C] != inb[ftex_pos+0x2C:ftex_pos+0x30]:
+        print("")
+        print("Mipmap size mismatch")
+        print("")
+        print("Exiting in 5 seconds...")
+        time.sleep(5)
+        sys.exit(1)
+
+    if gfd[0x54:0x58] != inb[ftex_pos+0x18:ftex_pos+0x1C]:
+        print("")
+        print("Format mismatch")
+        print("")
+        print("Exiting in 5 seconds...")
+        time.sleep(5)
+        sys.exit(1)
+
     inb = bytearray(inb)
 
     inb[ftex_pos+0x04:ftex_pos+0xA0] = gfd[0x40:0xDC]
@@ -111,7 +152,7 @@ def GTXtoBFRES(ftex_pos, gtx, bfres):
 
 def main():
 
-    print("BFRES Tool")
+    print("BFRES Tool v0.2")
     print("(C) 2017 AboodXD")
     
     if ((len(sys.argv) != 2) or (not sys.argv[1].endswith(".bfres"))):
@@ -123,50 +164,52 @@ def main():
             inb = inf.read()
             inf.close()
 
-        group = []
+        if inb[:4] != b"FRES":
+            print("")
+            print("Invalid BFRES header!")
+            print("")
+            print("Exiting in 5 seconds...")
+            time.sleep(5)
+            sys.exit(1)
 
-        for x in range(2): # Ignore Group 2-11, we can't ignore Group 0
-            group.append(groups())
-            group[x].pos = struct.unpack(">I", inb[0x20+(4*x):0x20+(4*x)+4])[0]
+        group = groups()
+        group.pos = struct.unpack(">I", inb[0x24:0x28])[0]
 
-            if group[x].pos == 0:
-                print("")
-                print("No textures found")
-                print("")
-                print("Exiting in 5 seconds...")
-                time.sleep(5)
-                sys.exit(1)
-            else:
-                group[x].pos += 0x20+(4*x)
-                group[x].size = struct.unpack(">I", inb[group[x].pos:group[x].pos+4])[0]
-                group[x].file = struct.unpack(">I", inb[group[x].pos+4:(group[x].pos+4)+4])[0]
+        if group.pos == 0:
+            print("")
+            print("No textures found")
+            print("")
+            print("Exiting in 5 seconds...")
+            time.sleep(5)
+            sys.exit(1)
+        else:
+            group.pos += 0x24
+            group.file = struct.unpack(">I", inb[group.pos+4:(group.pos+4)+4])[0]
 
-                group[x].name_pos = []
-                group[x].name = []
-                group[x].data_pos = []
-                group[x].dataSize = []
+            group.name_pos = []
+            group.name = []
+            group.data_pos = []
 
-                for i in range(group[x].file + 1):
-                    group[x].name_pos.append(struct.unpack(">I", inb[group[x].pos+8+(0x10*i)+8:(group[x].pos+8+(0x10*i)+8)+4])[0])
-                    group[x].data_pos.append(struct.unpack(">I", inb[group[x].pos+8+(0x10*i)+12:(group[x].pos+8+(0x10*i)+12)+4])[0])
-                            
+            for i in range(group.file + 1):
+                group.name_pos.append(struct.unpack(">I", inb[group.pos+8+(0x10*i)+8:(group.pos+8+(0x10*i)+8)+4])[0])
+                group.data_pos.append(struct.unpack(">I", inb[group.pos+8+(0x10*i)+12:(group.pos+8+(0x10*i)+12)+4])[0])
+                        
 
-                    if group[x].data_pos[i] == 0:
-                        group[x].name.append("")
-                    else:
-                        group[x].name_pos[i] += group[x].pos + 8 + (0x10*i) + 8
-                        group[x].data_pos[i] += group[x].pos + 8 + (0x10*i) + 12
-                        group[x].name.append(find_name(inb, group[x].name_pos[i]))
-                    
-                        if x == 1:
-                            print("")
-                            print(group[x].name[i] + ": " + hex(group[x].data_pos[i]))
+                if group.data_pos[i] == 0:
+                    group.name.append("")
+                else:
+                    group.name_pos[i] += group.pos + 8 + (0x10*i) + 8
+                    group.data_pos[i] += group.pos + 8 + (0x10*i) + 12
+                    group.name.append(find_name(inb, group.name_pos[i]))
+                
+                    print("")
+                    print(group.name[i] + ": " + hex(group.data_pos[i]))
 
         folder = os.path.dirname(os.path.abspath(sys.argv[1]))
 
-        for i in range(group[1].file):
-            ftex_pos = group[1].data_pos[i + 1]
-            name = group[1].name[i + 1]
+        for i in range(group.file):
+            ftex_pos = group.data_pos[i + 1]
+            name = group.name[i + 1]
             FTEXtoGTX(ftex_pos, inb, name, folder)
     else:
         print("")
