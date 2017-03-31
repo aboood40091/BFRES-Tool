@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 0.2
+# Version 1.0
 # Copyright © 2017 AboodXD
 
 # This file is part of BFRES Tool.
@@ -25,7 +25,7 @@
 import os, shutil, sys
 from cx_Freeze import setup, Executable
 
-version = '0.2'
+version = '1.0'
 
 # Pick a build directory
 dir_ = 'bfres_tool v' + version
@@ -59,10 +59,6 @@ setup(
     )
 
 print('>> Attempting to copy required files...')
-shutil.copy('COPYING', dir_)
-shutil.copy('DDStoGTX.bat', dir_)
-shutil.copy('GTXtoDDS.bat', dir_)
-shutil.copy('tileMode.txt', dir_)
 print('>> Files copied!')
 
 print('>> BFRES Tool has been frozen to "%s"!' % dir_)

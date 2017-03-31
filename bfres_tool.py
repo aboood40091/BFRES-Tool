@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 0.2
+# Version 1.0
 # Copyright © 2017 AboodXD
 
 # This file is part of BFRES Tool.
@@ -24,10 +24,98 @@
 
 import os, sys, struct, time
 
+formats = {0x00000000: 'GX2_SURFACE_FORMAT_INVALID',
+           0x00000001: 'GX2_SURFACE_FORMAT_TC_R8_UNORM',
+           0x00000101: 'GX2_SURFACE_FORMAT_TC_R8_UINT',
+           0x00000201: 'GX2_SURFACE_FORMAT_TC_R8_SNORM',
+           0x00000301: 'GX2_SURFACE_FORMAT_TC_R8_SINT',
+           0x00000002: 'GX2_SURFACE_FORMAT_T_R4_G4_UNORM',
+           0x00000005: 'GX2_SURFACE_FORMAT_TCD_R16_UNORM',
+           0x00000105: 'GX2_SURFACE_FORMAT_TC_R16_UINT',
+           0x00000205: 'GX2_SURFACE_FORMAT_TC_R16_SNORM',
+           0x00000305: 'GX2_SURFACE_FORMAT_TC_R16_SINT',
+           0x00000806: 'GX2_SURFACE_FORMAT_TC_R16_FLOAT',
+           0x00000007: 'GX2_SURFACE_FORMAT_TC_R8_G8_UNORM',
+           0x00000107: 'GX2_SURFACE_FORMAT_TC_R8_G8_UINT',
+           0x00000207: 'GX2_SURFACE_FORMAT_TC_R8_G8_SNORM',
+           0x00000307: 'GX2_SURFACE_FORMAT_TC_R8_G8_SINT',
+           0x00000008: 'GX2_SURFACE_FORMAT_TCS_R5_G6_B5_UNORM',
+           0x0000000a: 'GX2_SURFACE_FORMAT_TC_R5_G5_B5_A1_UNORM',
+           0x0000000b: 'GX2_SURFACE_FORMAT_TC_R4_G4_B4_A4_UNORM',
+           0x0000000c: 'GX2_SURFACE_FORMAT_TC_A1_B5_G5_R5_UNORM',
+           0x0000010d: 'GX2_SURFACE_FORMAT_TC_R32_UINT',
+           0x0000030d: 'GX2_SURFACE_FORMAT_TC_R32_SINT',
+           0x0000080e: 'GX2_SURFACE_FORMAT_TCD_R32_FLOAT',
+           0x0000000f: 'GX2_SURFACE_FORMAT_TC_R16_G16_UNORM',
+           0x0000010f: 'GX2_SURFACE_FORMAT_TC_R16_G16_UINT',
+           0x0000020f: 'GX2_SURFACE_FORMAT_TC_R16_G16_SNORM',
+           0x0000030f: 'GX2_SURFACE_FORMAT_TC_R16_G16_SINT',
+           0x00000810: 'GX2_SURFACE_FORMAT_TC_R16_G16_FLOAT',
+           0x00000011: 'GX2_SURFACE_FORMAT_D_D24_S8_UNORM',
+           0x00000011: 'GX2_SURFACE_FORMAT_T_R24_UNORM_X8',
+           0x00000111: 'GX2_SURFACE_FORMAT_T_X24_G8_UINT',
+           0x00000811: 'GX2_SURFACE_FORMAT_D_D24_S8_FLOAT',
+           0x00000816: 'GX2_SURFACE_FORMAT_TC_R11_G11_B10_FLOAT',
+           0x00000019: 'GX2_SURFACE_FORMAT_TCS_R10_G10_B10_A2_UNORM',
+           0x00000119: 'GX2_SURFACE_FORMAT_TC_R10_G10_B10_A2_UINT',
+           0x00000219: 'GX2_SURFACE_FORMAT_T_R10_G10_B10_A2_SNORM',
+           0x00000219: 'GX2_SURFACE_FORMAT_TC_R10_G10_B10_A2_SNORM',
+           0x00000319: 'GX2_SURFACE_FORMAT_TC_R10_G10_B10_A2_SINT',
+           0x0000001a: 'GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM',
+           0x0000011a: 'GX2_SURFACE_FORMAT_TC_R8_G8_B8_A8_UINT',
+           0x0000021a: 'GX2_SURFACE_FORMAT_TC_R8_G8_B8_A8_SNORM',
+           0x0000031a: 'GX2_SURFACE_FORMAT_TC_R8_G8_B8_A8_SINT',
+           0x0000041a: 'GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_SRGB',
+           0x0000001b: 'GX2_SURFACE_FORMAT_TCS_A2_B10_G10_R10_UNORM',
+           0x0000011b: 'GX2_SURFACE_FORMAT_TC_A2_B10_G10_R10_UINT',
+           0x0000081c: 'GX2_SURFACE_FORMAT_D_D32_FLOAT_S8_UINT_X24',
+           0x0000081c: 'GX2_SURFACE_FORMAT_T_R32_FLOAT_X8_X24',
+           0x0000011c: 'GX2_SURFACE_FORMAT_T_X32_G8_UINT_X24',
+           0x0000011d: 'GX2_SURFACE_FORMAT_TC_R32_G32_UINT',
+           0x0000031d: 'GX2_SURFACE_FORMAT_TC_R32_G32_SINT',
+           0x0000081e: 'GX2_SURFACE_FORMAT_TC_R32_G32_FLOAT',
+           0x0000001f: 'GX2_SURFACE_FORMAT_TC_R16_G16_B16_A16_UNORM',
+           0x0000011f: 'GX2_SURFACE_FORMAT_TC_R16_G16_B16_A16_UINT',
+           0x0000021f: 'GX2_SURFACE_FORMAT_TC_R16_G16_B16_A16_SNORM',
+           0x0000031f: 'GX2_SURFACE_FORMAT_TC_R16_G16_B16_A16_SINT',
+           0x00000820: 'GX2_SURFACE_FORMAT_TC_R16_G16_B16_A16_FLOAT',
+           0x00000122: 'GX2_SURFACE_FORMAT_TC_R32_G32_B32_A32_UINT',
+           0x00000322: 'GX2_SURFACE_FORMAT_TC_R32_G32_B32_A32_SINT',
+           0x00000823: 'GX2_SURFACE_FORMAT_TC_R32_G32_B32_A32_FLOAT',
+           0x00000031: 'GX2_SURFACE_FORMAT_T_BC1_UNORM',
+           0x00000431: 'GX2_SURFACE_FORMAT_T_BC1_SRGB',
+           0x00000032: 'GX2_SURFACE_FORMAT_T_BC2_UNORM',
+           0x00000432: 'GX2_SURFACE_FORMAT_T_BC2_SRGB',
+           0x00000033: 'GX2_SURFACE_FORMAT_T_BC3_UNORM',
+           0x00000433: 'GX2_SURFACE_FORMAT_T_BC3_SRGB',
+           0x00000034: 'GX2_SURFACE_FORMAT_T_BC4_UNORM',
+           0x00000234: 'GX2_SURFACE_FORMAT_T_BC4_SNORM',
+           0x00000035: 'GX2_SURFACE_FORMAT_T_BC5_UNORM',
+           0x00000235: 'GX2_SURFACE_FORMAT_T_BC5_SNORM',
+           0x00000081: 'GX2_SURFACE_FORMAT_T_NV12_UNORM'}
+
+tileModes = {0x00: 'GX2_TILE_MODE_DEFAULT',
+             0x01: 'GX2_TILE_MODE_LINEAR_ALIGNED',
+             0x02: 'GX2_TILE_MODE_1D_TILED_THIN1',
+             0x03: 'GX2_TILE_MODE_1D_TILED_THICK',
+             0x04: 'GX2_TILE_MODE_2D_TILED_THIN1',
+             0x05: 'GX2_TILE_MODE_2D_TILED_THIN2',
+             0x06: 'GX2_TILE_MODE_2D_TILED_THIN4',
+             0x07: 'GX2_TILE_MODE_2D_TILED_THICK',
+             0x08: 'GX2_TILE_MODE_2B_TILED_THIN1',
+             0x09: 'GX2_TILE_MODE_2B_TILED_THIN2',
+             0x0a: 'GX2_TILE_MODE_2B_TILED_THIN4',
+             0x0b: 'GX2_TILE_MODE_2B_TILED_THICK',
+             0x0c: 'GX2_TILE_MODE_3D_TILED_THIN1',
+             0x0d: 'GX2_TILE_MODE_3D_TILED_THICK',
+             0x0e: 'GX2_TILE_MODE_3B_TILED_THIN1',
+             0x0f: 'GX2_TILE_MODE_3B_TILED_THICK',
+             0x10: 'GX2_TILE_MODE_LINEAR_SPECIAL'}
+
 def err():
     print("")
-    print("Usage (BFRES to GTX): python bfres_tool.py bfres")
-    print("Usage (GTX to BFRES): python bfres_tool.py gtx bfres offset")
+    print("Usage (BFRES to DDS): python bfres_tool.py .bfres")
+    print("Usage (DDS to BFRES): python bfres_tool.py .dds .bfres offset")
     print("")
     print("Exiting in 5 seconds...")
     time.sleep(5)
@@ -49,22 +137,21 @@ def find_name(f, name_pos):
 
     return(name.decode("utf-8"))
 
-def FTEXtoGTX(ftex_pos, f, name, folder):
+def FTEXtoDDS(ftex_pos, f, name, folder):
     ftex = f[ftex_pos:ftex_pos+0xC0]
 
     head1 = bytearray.fromhex("4766783200000020000000070000000100000002000000000000000000000000424C4B7B0000002000000001000000000000000B0000009C0000000000000000")
     head4 = bytearray.fromhex("424C4B7B00000020000000010000000000000001000000000000000000000000")
 
-    info = ftex[0x4:0xA0]
+    info = ftex[0x4:0x8C] + bytearray.fromhex("0000000000000000000000000000000000000000")
 
     dataSize = struct.unpack(">I", info[0x20:0x24])[0]
     mipSize = struct.unpack(">I", info[0x28:0x2C])[0]
 
     head2 = bytearray.fromhex("424C4B7B0000002000000001000000000000000C") + dataSize.to_bytes(4, 'big') + bytearray.fromhex("0000000000000000")
-    head3 = bytearray.fromhex("424C4B7B0000002000000001000000000000000D") + mipSize.to_bytes(4, 'big') + bytearray.fromhex("0000000000000000")
 
     data_pos = struct.unpack(">I", f[ftex_pos+0xB0:ftex_pos+0xB4])[0] + ftex_pos + 0xB0
-    mip_pos = struct.unpack(">I", f[ftex_pos+0xB4:ftex_pos+0xB8])[0] + ftex_pos + 0xB4
+    mip_pos = struct.unpack(">I", f[ftex_pos+0xB4:ftex_pos+0xB8])[0]
 
     data = f[data_pos:data_pos+dataSize]
 
@@ -72,20 +159,45 @@ def FTEXtoGTX(ftex_pos, f, name, folder):
         head3 = b""
         mip = b""
     else:
+        mip_pos += ftex_pos + 0xB4
+        head3 = bytearray.fromhex("424C4B7B0000002000000001000000000000000D") + mipSize.to_bytes(4, 'big') + bytearray.fromhex("0000000000000000")
         mip = f[mip_pos:mip_pos+mipSize]
 
     file = head1 + info + head2 + data + head3 + mip + head4
 
-    with open(folder + "\\" + name + ".gtx", "wb") as output:
+    with open(folder + "\\" + name + "2.gtx", "wb") as output:
         output.write(file)
         output.close()
 
-def GTXtoBFRES(ftex_pos, gtx, bfres):
+    print("")
+    os.system('TexConv2 -i "' + folder + "\\" + name + '2.gtx" -f GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM -o "' + folder + "\\" + name + '.gtx"')
+    os.system('gtx_extract "' + folder + "\\" + name + '.gtx"')
+    os.system('DEL "' + folder + "\\" + name + '.gtx"')
+    os.system('DEL "' + folder + "\\" + name + '2.gtx"')
+
+def DDStoBFRES(ftex_pos, dds, bfres):
     with open(bfres, "rb") as inf:
         inb = inf.read()
         inf.close()
 
-    with open(gtx, "rb") as gfd1:
+    name = os.path.splitext(dds)[0]
+
+    os.system('TexConv2 -i "' + dds + '" -o "' + name + '.gtx"')
+
+    swizzle = struct.unpack(">I", inb[ftex_pos+0x38:ftex_pos+0x3C])[0]
+    swizzle = (swizzle & 0xFFF) >> 8
+    format_ = struct.unpack(">I", inb[ftex_pos+0x18:ftex_pos+0x1C])[0]
+    tileMode = struct.unpack(">I", inb[ftex_pos+0x34:ftex_pos+0x38])[0]
+    numMips = struct.unpack(">I", inb[ftex_pos+0x14:ftex_pos+0x18])[0]
+
+    if numMips > 1:
+        os.system('TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -mipFilter box -minmip 1 -o "' + name + '2.gtx"')
+    else:
+        os.system('TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -o "' + name + '2.gtx"')
+
+    os.system('DEL "' + name + '.gtx"')
+
+    with open(name + '2.gtx', "rb") as gfd1:
         gfd = gfd1.read()
         gfd1.close()
 
@@ -131,32 +243,35 @@ def GTXtoBFRES(ftex_pos, gtx, bfres):
 
     inb = bytearray(inb)
 
-    inb[ftex_pos+0x04:ftex_pos+0xA0] = gfd[0x40:0xDC]
+    inb[ftex_pos+0x04:ftex_pos+0x8C] = gfd[0x40:0xC8]
 
     dataSize = struct.unpack(">I", gfd[0x60:0x64])[0]
     mipSize = struct.unpack(">I", gfd[0x68:0x6C])[0]
 
     data_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB0:ftex_pos+0xB4]))[0] + ftex_pos + 0xB0
-    mip_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB4:ftex_pos+0xB8]))[0] + ftex_pos + 0xB4
+    mip_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB4:ftex_pos+0xB8]))[0]
 
     inb[data_pos:data_pos+dataSize] = gfd[0xFC:0xFC+dataSize]
 
     if mip_pos == 0:
         pass
     else:
+        mip_pos += ftex_pos + 0xB4
         inb[mip_pos:mip_pos+mipSize] = gfd[0xFC+dataSize+0x20:0xFC+dataSize+0x20+mipSize]
 
     with open(bfres, "wb") as output:
         output.write(inb)
         output.close()
 
+    os.system('DEL "' + name + '2.gtx"')
+
 def main():
 
-    print("BFRES Tool v0.2")
+    print("BFRES Tool v1.0")
     print("(C) 2017 AboodXD")
     
     if ((len(sys.argv) != 2) or (not sys.argv[1].endswith(".bfres"))):
-        if ((len(sys.argv) != 4) or (not sys.argv[1].endswith(".gtx")) or (not sys.argv[2].endswith(".bfres"))):
+        if ((len(sys.argv) != 4) or (not sys.argv[1].endswith(".dds")) or (not sys.argv[2].endswith(".bfres"))):
             err()
 
     if len(sys.argv) == 2:
@@ -177,7 +292,7 @@ def main():
 
         if group.pos == 0:
             print("")
-            print("No textures found")
+            print("No textures found in this BFRES file!")
             print("")
             print("Exiting in 5 seconds...")
             time.sleep(5)
@@ -210,12 +325,21 @@ def main():
         for i in range(group.file):
             ftex_pos = group.data_pos[i + 1]
             name = group.name[i + 1]
-            FTEXtoGTX(ftex_pos, inb, name, folder)
-    else:
+            FTEXtoDDS(ftex_pos, inb, name, folder)
+
+    elif len(sys.argv) == 4:
         print("")
         print("Injecting: " + sys.argv[1])
         ftex_pos = int(sys.argv[3], 16)
 
-        GTXtoBFRES(ftex_pos, sys.argv[1], sys.argv[2])
+        DDStoBFRES(ftex_pos, sys.argv[1], sys.argv[2])
+
+    else:
+        print("")
+        print("This shouldn't be happening...")
+        print("")
+        print("Exiting in 5 seconds...")
+        time.sleep(5)
+        sys.exit(1)
 
 if __name__ == '__main__': main()
