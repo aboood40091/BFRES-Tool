@@ -202,70 +202,46 @@ def DDStoBFRES(ftex_pos, dds, bfres):
         gfd1.close()
 
     if inb[:4] != b"FRES":
-        print("")
-        print("Invalid BFRES header!")
-        print("")
-        print("Exiting in 5 seconds...")
-        time.sleep(5)
-        sys.exit(1)
+        messagebox.showinfo("", "Invalid BFRES header!")
 
-    if gfd[:4] != b"Gfx2":
-        print("")
-        print("Invalid GTX header!")
-        print("")
-        print("Exiting in 5 seconds...")
-        time.sleep(5)
-        sys.exit(1)
+    elif gfd[:4] != b"Gfx2":
+        messagebox.showinfo("", "Invalid GTX header!")
 
-    if ((gfd[0x60:0x64] != inb[ftex_pos+0x24:ftex_pos+0x28]) or (gfd[0x60:0x64] != gfd[0xF0:0xF4])):
-        print("")
-        print("Data size mismatch")
-        print("")
-        print("Exiting in 5 seconds...")
-        time.sleep(5)
-        sys.exit(1)
+    elif ((gfd[0x60:0x64] != inb[ftex_pos+0x24:ftex_pos+0x28]) or (gfd[0x60:0x64] != gfd[0xF0:0xF4])):
+        messagebox.showinfo("", "Data size mismatch")
 
-    if gfd[0x68:0x6C] != inb[ftex_pos+0x2C:ftex_pos+0x30]:
-        print("")
-        print("Mipmap size mismatch")
-        print("")
-        print("Exiting in 5 seconds...")
-        time.sleep(5)
-        sys.exit(1)
+    elif gfd[0x68:0x6C] != inb[ftex_pos+0x2C:ftex_pos+0x30]:
+        messagebox.showinfo("", "Mipmap size mismatch")
 
-    if gfd[0x54:0x58] != inb[ftex_pos+0x18:ftex_pos+0x1C]:
-        print("")
-        print("Format mismatch")
-        print("")
-        print("Exiting in 5 seconds...")
-        time.sleep(5)
-        sys.exit(1)
+    elif gfd[0x54:0x58] != inb[ftex_pos+0x18:ftex_pos+0x1C]:
+        messagebox.showinfo("", "Format mismatch")
 
-    inb = bytearray(inb)
-
-    inb[ftex_pos+0x04:ftex_pos+0x8C] = gfd[0x40:0xC8]
-
-    dataSize = struct.unpack(">I", gfd[0x60:0x64])[0]
-    mipSize = struct.unpack(">I", gfd[0x68:0x6C])[0]
-
-    data_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB0:ftex_pos+0xB4]))[0] + ftex_pos + 0xB0
-    mip_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB4:ftex_pos+0xB8]))[0]
-
-    inb[data_pos:data_pos+dataSize] = gfd[0xFC:0xFC+dataSize]
-
-    if mip_pos == 0:
-        pass
     else:
-        mip_pos += ftex_pos + 0xB4
-        inb[mip_pos:mip_pos+mipSize] = gfd[0xFC+dataSize+0x20:0xFC+dataSize+0x20+mipSize]
+        inb = bytearray(inb)
 
-    with open(bfres, "wb") as output:
-        output.write(inb)
-        output.close()
+        inb[ftex_pos+0x04:ftex_pos+0x8C] = gfd[0x40:0xC8]
 
-    os.remove(name + '2.gtx')
+        dataSize = struct.unpack(">I", gfd[0x60:0x64])[0]
+        mipSize = struct.unpack(">I", gfd[0x68:0x6C])[0]
 
-    messagebox.showinfo("", "Done!")
+        data_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB0:ftex_pos+0xB4]))[0] + ftex_pos + 0xB0
+        mip_pos = struct.unpack(">I", bytes(inb[ftex_pos+0xB4:ftex_pos+0xB8]))[0]
+
+        inb[data_pos:data_pos+dataSize] = gfd[0xFC:0xFC+dataSize]
+
+        if mip_pos == 0:
+            pass
+        else:
+            mip_pos += ftex_pos + 0xB4
+            inb[mip_pos:mip_pos+mipSize] = gfd[0xFC+dataSize+0x20:0xFC+dataSize+0x20+mipSize]
+
+        with open(bfres, "wb") as output:
+            output.write(inb)
+            output.close()
+
+        os.remove(name + '2.gtx')
+
+        messagebox.showinfo("", "Done!")
 
 def openfile():
     options = {}
