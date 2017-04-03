@@ -203,18 +203,23 @@ def DDStoBFRES(ftex_pos, dds, bfres):
 
     if inb[:4] != b"FRES":
         messagebox.showinfo("", "Invalid BFRES header!")
+        os.remove(name + '2.gtx')
 
     elif gfd[:4] != b"Gfx2":
         messagebox.showinfo("", "Invalid GTX header!")
+        os.remove(name + '2.gtx')
 
     elif ((gfd[0x60:0x64] != inb[ftex_pos+0x24:ftex_pos+0x28]) or (gfd[0x60:0x64] != gfd[0xF0:0xF4])):
         messagebox.showinfo("", "Data size mismatch")
+        os.remove(name + '2.gtx')
 
     elif gfd[0x68:0x6C] != inb[ftex_pos+0x2C:ftex_pos+0x30]:
         messagebox.showinfo("", "Mipmap size mismatch")
+        os.remove(name + '2.gtx')
 
     elif gfd[0x54:0x58] != inb[ftex_pos+0x18:ftex_pos+0x1C]:
         messagebox.showinfo("", "Format mismatch")
+        os.remove(name + '2.gtx')
 
     else:
         inb = bytearray(inb)
