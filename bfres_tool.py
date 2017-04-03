@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 1.0
+# Version 2.0
 # Copyright © 2017 AboodXD
 
 # This file is part of BFRES Tool.
@@ -23,6 +23,15 @@
 """bfres_tool.py: The main executable."""
 
 import os, sys, struct, time
+from tkinter import Tk, Frame, Button, Canvas, Scrollbar, Menu
+from tkinter.filedialog import askopenfilename
+import tkinter.messagebox as messagebox
+
+top = Tk()
+canvas = Canvas(top)
+frame = Frame(canvas)
+menubar = Menu(top)
+filemenu = Menu(menubar, tearoff=0)
 
 formats = {0x00000000: 'GX2_SURFACE_FORMAT_INVALID',
            0x00000001: 'GX2_SURFACE_FORMAT_TC_R8_UNORM',
@@ -112,15 +121,6 @@ tileModes = {0x00: 'GX2_TILE_MODE_DEFAULT',
              0x0f: 'GX2_TILE_MODE_3B_TILED_THICK',
              0x10: 'GX2_TILE_MODE_LINEAR_SPECIAL'}
 
-def err():
-    print("")
-    print("Usage (BFRES to DDS): python bfres_tool.py .bfres")
-    print("Usage (DDS to BFRES): python bfres_tool.py .dds .bfres offset")
-    print("")
-    print("Exiting in 5 seconds...")
-    time.sleep(5)
-    sys.exit(1)
-
 class groups():
     pass
 
@@ -195,7 +195,7 @@ def DDStoBFRES(ftex_pos, dds, bfres):
     else:
         os.system('TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -o "' + name + '2.gtx"')
 
-    os.system('DEL "' + name + '.gtx"')
+    os.remove(name + '.gtx')
 
     with open(name + '2.gtx', "rb") as gfd1:
         gfd = gfd1.read()
@@ -263,40 +263,30 @@ def DDStoBFRES(ftex_pos, dds, bfres):
         output.write(inb)
         output.close()
 
-    os.system('DEL "' + name + '2.gtx"')
+    os.remove(name + '2.gtx')
 
-def main():
+    messagebox.showinfo("", "Done!")
 
-    print("BFRES Tool v1.0")
-    print("(C) 2017 AboodXD")
+def openfile():
+    options = {}
+    options['filetypes'] = [('BFRES files', '.bfres')]
+    filename = askopenfilename(parent=top, filetypes=options['filetypes'])
+
+    with open(filename, "rb") as inf:
+        inb = inf.read()
+        inf.close()
+
+    global menubar
+    global filemenu
     
-    if ((len(sys.argv) != 2) or (not sys.argv[1].endswith(".bfres"))):
-        if ((len(sys.argv) != 4) or (not sys.argv[1].endswith(".dds")) or (not sys.argv[2].endswith(".bfres"))):
-            err()
-
-    if len(sys.argv) == 2:
-        with open(sys.argv[1], "rb") as inf:
-            inb = inf.read()
-            inf.close()
-
-        if inb[:4] != b"FRES":
-            print("")
-            print("Invalid BFRES header!")
-            print("")
-            print("Exiting in 5 seconds...")
-            time.sleep(5)
-            sys.exit(1)
-
+    if inb[:4] != b"FRES":
+        messagebox.showinfo("", "Invalid BFRES header!")
+    else:
         group = groups()
         group.pos = struct.unpack(">I", inb[0x24:0x28])[0]
 
         if group.pos == 0:
-            print("")
-            print("No textures found in this BFRES file!")
-            print("")
-            print("Exiting in 5 seconds...")
-            time.sleep(5)
-            sys.exit(1)
+            messagebox.showinfo("", "No textures found in this BFRES file!")
         else:
             group.pos += 0x24
             group.file = struct.unpack(">I", inb[group.pos+4:(group.pos+4)+4])[0]
@@ -316,30 +306,52 @@ def main():
                     group.name_pos[i] += group.pos + 8 + (0x10*i) + 8
                     group.data_pos[i] += group.pos + 8 + (0x10*i) + 12
                     group.name.append(find_name(inb, group.name_pos[i]))
-                
-                    print("")
-                    print(group.name[i] + ": " + hex(group.data_pos[i]))
 
-        folder = os.path.dirname(os.path.abspath(sys.argv[1]))
+            folder = os.path.dirname(os.path.abspath(filename))
 
-        for i in range(group.file):
-            ftex_pos = group.data_pos[i + 1]
-            name = group.name[i + 1]
-            FTEXtoDDS(ftex_pos, inb, name, folder)
+            scr = Scrollbar(top, orient="vertical", command=canvas.yview)
+            canvas.configure(yscrollcommand=scr.set)
 
-    elif len(sys.argv) == 4:
-        print("")
-        print("Injecting: " + sys.argv[1])
-        ftex_pos = int(sys.argv[3], 16)
+            scr.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
+            canvas.create_window((4,4), window=frame, anchor="nw")
 
-        DDStoBFRES(ftex_pos, sys.argv[1], sys.argv[2])
+            frame.bind("<Configure>", lambda event, canvas=canvas: onFrameConfigure(canvas))
 
-    else:
-        print("")
-        print("This shouldn't be happening...")
-        print("")
-        print("Exiting in 5 seconds...")
-        time.sleep(5)
-        sys.exit(1)
+            options['filetypes'] = [('DDS files', '.dds')]
+
+            for i in range(group.file):
+                ftex_pos = group.data_pos[i + 1]
+                name = group.name[i + 1]
+                if os.path.isfile(folder + "\\" + name + ".dds"):
+                    pass
+                else:
+                    FTEXtoDDS(ftex_pos, inb, name, folder)
+
+                tv = 'Replace "' + name + '"'
+                b = Button(frame, text=tv, command=lambda ftex_pos=ftex_pos: DDStoBFRES(ftex_pos, askopenfilename(parent=top, filetypes=options['filetypes']), filename))
+                b.pack(padx=1, pady=1)
+            
+            menubar.destroy()
+            filemenu.destroy()
+
+            messagebox.showinfo("", "Done!")
+
+def onFrameConfigure(canvas):
+    '''Reset the scroll region to encompass the inner frame'''
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+def main():
+    global tex
+    global scr
+
+    print("(C) 2017 AboodXD")
+
+    top.title("BFRES Tool v2.0")
+    filemenu.add_command(label="Open", command=openfile)
+    menubar.add_cascade(label="File", menu=filemenu)
+
+    top.config(menu=menubar)
+    top.mainloop()
 
 if __name__ == '__main__': main()
