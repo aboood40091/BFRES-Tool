@@ -174,8 +174,8 @@ def FTEXtoDDS(ftex_pos, f, name, folder):
         output.close()
 
     print("")
-    os.system('Tex\TexConv2.exe -i "' + folder + "\\" + name + '2.gtx" -f GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM -o "' + folder + "\\" + name + '.gtx"')
-    os.system('Tex\gtx_extract.exe "' + folder + "\\" + name + '.gtx"')
+    os.system('C:\Tex\TexConv2.exe -i "' + folder + "\\" + name + '2.gtx" -f GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM -o "' + folder + "\\" + name + '.gtx"')
+    os.system('C:\Tex\gtx_extract.exe "' + folder + "\\" + name + '.gtx"')
     os.system('DEL "' + folder + "\\" + name + '.gtx"')
     os.system('DEL "' + folder + "\\" + name + '2.gtx"')
 
@@ -186,7 +186,7 @@ def DDStoBFRES(ftex_pos, dds, bfres):
 
     name = os.path.splitext(dds)[0]
 
-    os.system('Tex\TexConv2.exe -i "' + dds + '" -o "' + name + '.gtx"')
+    os.system('C:\Tex\TexConv2.exe -i "' + dds + '" -o "' + name + '.gtx"')
 
     swizzle = struct.unpack(">I", inb[ftex_pos+0x38:ftex_pos+0x3C])[0]
     swizzle = (swizzle & 0xFFF) >> 8
@@ -195,9 +195,9 @@ def DDStoBFRES(ftex_pos, dds, bfres):
     numMips = struct.unpack(">I", inb[ftex_pos+0x14:ftex_pos+0x18])[0]
 
     if numMips > 1:
-        os.system('Tex\TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -mipFilter box -minmip 1 -o "' + name + '2.gtx"')
+        os.system('C:\Tex\TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -mipFilter box -minmip 1 -o "' + name + '2.gtx"')
     else:
-        os.system('Tex\TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -o "' + name + '2.gtx"')
+        os.system('C:\Tex\TexConv2.exe -i "' + name + '.gtx" -f ' + formats[format_] + ' -tileMode ' + tileModes[tileMode] + ' -swizzle ' + str(swizzle) + ' -o "' + name + '2.gtx"')
 
     os.remove(name + '.gtx')
 
@@ -332,7 +332,7 @@ def main():
 
     print("(C) 2017 AboodXD")
 
-    if not os.path.isfile("Tex\gtx_extract.exe"):
+    if not os.path.isfile("C:\Tex\gtx_extract.exe"):
         print("")
         print("Downloading the necessary tools...")
 
@@ -341,19 +341,19 @@ def main():
             print("It seems like you have a 32-bit computer... Good luck getting this to work on it!")
 
         else:
-            if not os.path.isdir("Tex"):
-                os.mkdir("Tex")
+            if not os.path.isdir("C:\Tex"):
+                os.mkdir("C:\Tex")
 
             print("")
             print("Fetching GTX Extractor... ")
             print("")
-            response = requests.get('https://github.com/aboood40091/GTX-Extractor/')
+            response = requests.get('https://github.com/aboood40091/GTX-Extractor/', verify=False)
 
             if (int(response.status_code)) == 200:
                 print("Connected to the download page!")
 
             else:
-                response = requests.get('https://www.google.com')
+                response = requests.get('https://www.google.com', verify=False)
                 if (int(response.status_code)) == 200:
                     print("")
                     print("It seems that the download page is down. Try restarting BFRES Tool and check if it still doesn't work.")
@@ -378,7 +378,7 @@ def main():
             print("Unzipping...")
             
             zip = zipfile.ZipFile(r'gtx_extract.zip')  
-            zip.extractall(r'Tex')
+            zip.extractall(r'C:\Tex')
             
             print("File succesfully unzipped!")
             print("")
@@ -389,50 +389,50 @@ def main():
             
             print("Zipped file succesfully removed!")
 
-        if not os.path.isfile("Tex\TexConv2.exe"):
-            print("")
-            print("Fetching TexConv2... ")
-            print("")
-            response = requests.get('https://github.com/NWPlayer123/WiiUTools/tree/master/TexHaxU')
+            if not os.path.isfile("C:\Tex\TexConv2.exe"):
+                print("")
+                print("Fetching TexConv2... ")
+                print("")
+                response = requests.get('https://github.com/NWPlayer123/WiiUTools/tree/master/TexHaxU', verify=False)
 
-            if (int(response.status_code)) == 200:
-                print("Connected to the download page!")
-
-            else:
-                response = requests.get('https://www.google.com')
                 if (int(response.status_code)) == 200:
-                    print("")
-                    print("It seems that the download page is down. Try restarting BFRES Tool and check if it still doesn't work.")
-                    print("")
-                    print("Exiting in 5 seconds...")
-                    time.sleep(5)
-                    sys.exit(1)
+                    print("Connected to the download page!")
 
                 else:
-                    print("")
-                    print("It looks like you don't have a working internet connection. Connect to another network, or solve the connection problem.")
-                    print("")
-                    print("Exiting in 5 seconds...")
-                    time.sleep(5)
-                    sys.exit(1)
+                    response = requests.get('https://www.google.com', verify=False)
+                    if (int(response.status_code)) == 200:
+                        print("")
+                        print("It seems that the download page is down. Try restarting BFRES Tool and check if it still doesn't work.")
+                        print("")
+                        print("Exiting in 5 seconds...")
+                        time.sleep(5)
+                        sys.exit(1)
 
-            print("")
-            print("Downloading...")
-            urllib.request.urlretrieve("https://github.com/NWPlayer123/WiiUTools/raw/master/TexHaxU/gfd.dll", "gfd.dll")
-            urllib.request.urlretrieve("https://github.com/NWPlayer123/WiiUTools/raw/master/TexHaxU/TexConv2.exe", "TexConv2.exe")
-            urllib.request.urlretrieve("https://github.com/NWPlayer123/WiiUTools/raw/master/TexHaxU/texUtils.dll", "texUtils.dll")
-            print("Download completed!")
+                    else:
+                        print("")
+                        print("It looks like you don't have a working internet connection. Connect to another network, or solve the connection problem.")
+                        print("")
+                        print("Exiting in 5 seconds...")
+                        time.sleep(5)
+                        sys.exit(1)
 
-            print("")
-            print("Moving files...")
-            source1 = "gfd.dll"
-            source2 = "TexConv2.exe"
-            source3 = "texUtils.dll"
-            destination = "Tex"
-            
-            shutil.move(source1, destination)
-            shutil.move(source2, destination)
-            shutil.move(source3, destination)
+                print("")
+                print("Downloading...")
+                urllib.request.urlretrieve("https://github.com/NWPlayer123/WiiUTools/raw/master/TexHaxU/gfd.dll", "gfd.dll")
+                urllib.request.urlretrieve("https://github.com/NWPlayer123/WiiUTools/raw/master/TexHaxU/TexConv2.exe", "TexConv2.exe")
+                urllib.request.urlretrieve("https://github.com/NWPlayer123/WiiUTools/raw/master/TexHaxU/texUtils.dll", "texUtils.dll")
+                print("Download completed!")
+
+                print("")
+                print("Moving files...")
+                source1 = "gfd.dll"
+                source2 = "TexConv2.exe"
+                source3 = "texUtils.dll"
+                destination = "C:\Tex"
+                
+                shutil.move(source1, destination)
+                shutil.move(source2, destination)
+                shutil.move(source3, destination)
         
     top.title("BFRES Tool v2.1")
     filemenu.add_command(label="Open", command=openfile)
