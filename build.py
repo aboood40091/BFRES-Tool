@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 2.0
+# Version 2.1
 # Copyright © 2017 AboodXD
 
 # This file is part of BFRES Tool.
@@ -25,7 +25,7 @@
 import os, shutil, sys
 from cx_Freeze import setup, Executable
 
-version = '2.0'
+version = '2.1'
 
 # Pick a build directory
 dir_ = 'bfres_tool v' + version
