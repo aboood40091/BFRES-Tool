@@ -58,7 +58,4 @@ setup(
         ],
     )
 
-print('>> Attempting to copy required files...')
-print('>> Files copied!')
-
 print('>> BFRES Tool has been frozen to "%s"!' % dir_)
