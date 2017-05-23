@@ -538,7 +538,7 @@ def openfile():
                     format_ = FTEXtoDDS(ftex_pos, inb, name, folder)
 
                 if format_ in formats:
-                    tv = 'Replace "' + name + '"' + '"\n' + formats2[format_]
+                    tv = 'Replace "' + name + '"\n' + formats2[format_]
                     b = Button(frame, text=tv, command=lambda ftex_pos=ftex_pos: DDStoBFRES(ftex_pos, askopenfilename(parent=top, filetypes=options['filetypes']), filename))
                     b.pack(padx=1, pady=1)
             
