@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 3.0
+# Version 3.1
 # Copyright © 2017 AboodXD
 
 # This file is part of BFRES Tool.
@@ -195,47 +195,50 @@ def FTEXtoDDS(ftex_pos, f, name, folder):
             os.system('C:\Tex\TexConv2.exe -i "' + folder + "\\" + name + '2.gtx" -o "' + folder + "\\" + name + '.dds"')
 
             if ((format_ in supported_formats) and (depth == 1) and (aa == 0)):
-                if (format_ == 0x1a or format_ == 0x41a):
-                    format__ = 28
-                elif format_ == 0x19:
-                    format__ = 24
-                elif format_ == 0x8:
-                    format__ = 85
-                elif format_ == 0xa:
-                    format__ = 86
-                elif format_ == 0xb:
-                    format__ = 115
-                elif format_ == 0x1:
-                    format__ = 61
-                elif format_ == 0x7:
-                    format__ = 49
-                elif format_ == 0x2:
-                    format__ = 112
-                elif (format_ == 0x31 or format_ == 0x431):
-                    format__ = "BC1"
-                elif (format_ == 0x32 or format_ == 0x432):
-                    format__ = "BC2"
-                elif (format_ == 0x33 or format_ == 0x433):
-                    format__ = "BC3"
-                elif format_ == 0x34:
-                    format__ = "BC4U"
-                elif format_ == 0x234:
-                    format__ = "BC4S"
-                elif format_ == 0x35:
-                    format__ = "BC5U"
-                elif format_ == 0x235:
-                    format__ = "BC5S"
+                if os.path.isfile(folder + "\\" + name + '.dds'):
+                    if (format_ == 0x1a or format_ == 0x41a):
+                        format__ = 28
+                    elif format_ == 0x19:
+                        format__ = 24
+                    elif format_ == 0x8:
+                        format__ = 85
+                    elif format_ == 0xa:
+                        format__ = 86
+                    elif format_ == 0xb:
+                        format__ = 115
+                    elif format_ == 0x1:
+                        format__ = 61
+                    elif format_ == 0x7:
+                        format__ = 49
+                    elif format_ == 0x2:
+                        format__ = 112
+                    elif (format_ == 0x31 or format_ == 0x431):
+                        format__ = "BC1"
+                    elif (format_ == 0x32 or format_ == 0x432):
+                        format__ = "BC2"
+                    elif (format_ == 0x33 or format_ == 0x433):
+                        format__ = "BC3"
+                    elif format_ == 0x34:
+                        format__ = "BC4U"
+                    elif format_ == 0x234:
+                        format__ = "BC4S"
+                    elif format_ == 0x35:
+                        format__ = "BC5U"
+                    elif format_ == 0x235:
+                        format__ = "BC5S"
 
-                hdr = writeHeader(1, width, height, format__, format_ in BCn_formats)
+                    hdr = writeHeader(1, width, height, format__, format_ in BCn_formats)
 
-                with open(folder + "\\" + name + ".dds", "rb") as output:
-                    out = bytearray(output.read())
-                    output.close()
+                    with open(folder + "\\" + name + ".dds", "rb") as output:
+                        out = bytearray(output.read())
+                        output.close()
 
-                with open(folder + "\\" + name + ".dds", "wb") as output:
-                    out[:0x80] = hdr
-                    output.write(out)
-                    output.close()
+                    with open(folder + "\\" + name + ".dds", "wb") as output:
+                        out[:0x80] = hdr
+                        output.write(out)
+                        output.close()
+                else:
+                    format_ = 0
 
         os.remove(folder + "\\" + name + '2.gtx')
 
@@ -559,11 +562,11 @@ def main():
 
     down = False
 
-    if not os.path.isfile("C:\Tex\\new.txt"):
+    if not os.path.isfile("C:/Tex/new.txt"):
         down = True
     else:
-        with open("C:\Tex\\new.txt", "r") as txt:
-            if txt.read() != 'v3.0':
+        with open("C:/Tex/new.txt", "r") as txt:
+            if txt.read() != 'v3.1':
                 down = True
 
     if down:
@@ -587,7 +590,7 @@ def main():
             response = requests.get('https://www.google.com', verify=False)
             if (int(response.status_code)) == 200:
                 print("")
-                print("It seems that the download page is down. Try restarting BFLIM Tool and check if it still doesn't work.")
+                print("It seems that the download page is down. Try restarting BFRES Tool and check if it still doesn't work.")
                 print("")
                 print("Exiting in 5 seconds...")
                 time.sleep(5)
@@ -601,20 +604,21 @@ def main():
                 time.sleep(5)
                 sys.exit(1)
 
+        source = "gtx_extract.exe"
+        destination = "C:/Tex"
+
+        if not os.path.isfile(destination + '/' + source):
+            os.remove(destination + '/' + source)
+
         print("")
         print("Downloading...")
-        urllib.request.urlretrieve("https://github.com/aboood40091/RandomStuff/releases/download/v0.1/gtx_extract.exe", "gtx_extract.exe")
+        urllib.request.urlretrieve("https://github.com/aboood40091/RandomStuff/releases/download/v0.1/gtx_extract_no5.exe", "gtx_extract.exe")
         print("Download completed!")
 
         print("")
         print("Moving files...")
-        source = "gtx_extract.exe"
-        destination = "C:\Tex"
         
         if not os.path.isfile(destination + '/' + source):
-            shutil.move(source, destination)
-        else:
-            os.remove(destination + '/' + source)
             shutil.move(source, destination)
 
         print("")
@@ -629,7 +633,7 @@ def main():
             response = requests.get('https://www.google.com', verify=False)
             if (int(response.status_code)) == 200:
                 print("")
-                print("It seems that the download page is down. Try restarting BFLIM Tool and check if it still doesn't work.")
+                print("It seems that the download page is down. Try restarting BFRES Tool and check if it still doesn't work.")
                 print("")
                 print("Exiting in 5 seconds...")
                 time.sleep(5)
@@ -643,6 +647,20 @@ def main():
                 time.sleep(5)
                 sys.exit(1)
 
+        source1 = "gfd.dll"
+        source2 = "TexConv2.exe"
+        source3 = "texUtils.dll"
+        destination = "C:/Tex"
+
+        if os.path.isfile(destination + '/' + source1):
+            os.remove(destination + '/' + source1)
+
+        if os.path.isfile(destination + '/' + source2):
+            os.remove(destination + '/' + source2)
+
+        if os.path.isfile(destination + '/' + source3):
+            os.remove(destination + '/' + source3)
+
         print("")
         print("Downloading...")
         urllib.request.urlretrieve("https://github.com/aboood40091/WiiUTools/raw/master/TexHaxU/gfd.dll", "gfd.dll")
@@ -652,34 +670,21 @@ def main():
 
         print("")
         print("Moving files...")
-        source1 = "gfd.dll"
-        source2 = "TexConv2.exe"
-        source3 = "texUtils.dll"
-        destination = "C:\Tex"
         
         if not os.path.isfile(destination + '/' + source1):
-            shutil.move(source1, destination)
-        else:
-            os.remove(destination + '/' + source1)
             shutil.move(source1, destination)
 
         if not os.path.isfile(destination + '/' + source2):
             shutil.move(source2, destination)
-        else:
-            os.remove(destination + '/' + source2)
-            shutil.move(source2, destination)
 
         if not os.path.isfile(destination + '/' + source3):
             shutil.move(source3, destination)
-        else:
-            os.remove(destination + '/' + source3)
-            shutil.move(source3, destination)
 
-        with open("C:\Tex\\new.txt", "w+") as txt:
-            txt.write('v3.0')
+        with open("C:/Tex/new.txt", "w+") as txt:
+            txt.write('v3.1')
             txt.close()
         
-    top.title("BFRES Tool v3.0")
+    top.title("BFRES Tool v3.1")
     filemenu.add_command(label="Open", command=openfile)
     menubar.add_cascade(label="File", menu=filemenu)
 
