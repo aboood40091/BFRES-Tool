@@ -562,9 +562,14 @@ def main():
 
     down = False
 
+    files = ["C:/Tex/gfd.dll", "C:/Tex/gtx_extract.exe", "C:/Tex/TexConv2.exe", "C:/Tex/texUtils.dll"]
+
     if not os.path.isfile("C:/Tex/new.txt"):
         down = True
     else:
+        for file in files:
+            if not os.path.isfile(file):
+                down = True
         with open("C:/Tex/new.txt", "r") as txt:
             if txt.read() != 'v3.1':
                 down = True
