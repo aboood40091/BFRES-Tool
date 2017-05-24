@@ -607,7 +607,7 @@ def main():
         source = "gtx_extract.exe"
         destination = "C:/Tex"
 
-        if not os.path.isfile(destination + '/' + source):
+        if os.path.isfile(destination + '/' + source):
             os.remove(destination + '/' + source)
 
         print("")
