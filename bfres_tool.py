@@ -174,16 +174,16 @@ def FTEXtoDDS(ftex_pos, f, name, folder):
 
         compSel = []
         for i in range(4):
-            comp = f[pos + i]
+            comp = ftex[pos + i]
             if comp == 4: # Sorry, but this is unsupported.
                 comp = i
-            compSel.append(f[pos + i])
+            compSel.append(comp)
 
         dataSize = surface.imageSize
         mipSize = surface.mipSize
 
-        data_pos = struct.unpack(">I", f[ftex_pos+0xB0:ftex_pos+0xB4])[0] + ftex_pos + 0xB0
-        mip_pos = struct.unpack(">I", f[ftex_pos+0xB4:ftex_pos+0xB8])[0]
+        data_pos = struct.unpack(">I", ftex[0xB0:0xB4])[0] + ftex_pos + 0xB0
+        mip_pos = struct.unpack(">I", ftex[0xB4:0xB8])[0]
 
         data = f[data_pos:data_pos+dataSize]
 
