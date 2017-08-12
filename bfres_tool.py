@@ -268,9 +268,9 @@ def FTEXtoDDS(ftex_pos, f, name, folder):
             deswizzled = addrlib.deswizzle(max(1, width >> level), max(1, height >> level), surfOut.height, format_, surfOut.tileMode, swizzle_, surfOut.pitch, surfOut.bpp, data)
 
             if format_ in BCn_formats:
-                size = ((max(1, width >> level) + 3) >> 2) * ((max(1, height >> level) + 3) >> 2) * surfOut.bpp
+                size = ((max(1, width >> level) + 3) >> 2) * ((max(1, height >> level) + 3) >> 2) * bpp
             else:
-                size = max(1, width >> level) * max(1, height >> level) * surfOut.bpp
+                size = max(1, width >> level) * max(1, height >> level) * bpp
 
             if format_ == 0xa:
                 data = form_conv.toDDSrgb5a1(deswizzled[:size])
