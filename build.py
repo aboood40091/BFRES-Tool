@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 3.1
-# Copyright © 2017 AboodXD
+# Version 4.0
+# Copyright © 2017 Stella/AboodXD
 
 # This file is part of BFRES Tool.
 
@@ -25,7 +25,7 @@
 import os, shutil, sys
 from cx_Freeze import setup, Executable
 
-version = '3.1'
+version = '4.0'
 
 # Pick a build directory
 dir_ = 'bfres_tool v' + version
@@ -44,7 +44,7 @@ setup(
     name = 'BFRES Tool',
     version = version,
     description = 'Wii U BFRES Tool',
-    author = "AboodXD",
+    author = "Stella/AboodXD",
     options={
         'build_exe': {
             'compressed': 1,
