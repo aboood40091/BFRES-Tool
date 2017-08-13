@@ -54,7 +54,6 @@ formats = {0x00000001: 'GX2_SURFACE_FORMAT_TC_R8_UNORM',
            0x00000019: 'GX2_SURFACE_FORMAT_TCS_R10_G10_B10_A2_UNORM',
            0x0000001a: 'GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM',
            0x0000041a: 'GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_SRGB',
-           0x0000001b: 'GX2_SURFACE_FORMAT_TCS_A2_B10_G10_R10_UNORM',
            0x00000031: 'GX2_SURFACE_FORMAT_T_BC1_UNORM',
            0x00000431: 'GX2_SURFACE_FORMAT_T_BC1_SRGB',
            0x00000032: 'GX2_SURFACE_FORMAT_T_BC2_UNORM',
@@ -96,7 +95,6 @@ formats2 = {0x00000001: 'L8',
             0x00000019: 'A2RGB10 / A2BGR10',
             0x0000001a: 'ARGB8 / ABGR8',
             0x0000041a: 'ARGB8 / ABGR8',
-            0x0000001b: 'A2RGB10 / A2BGR10',
             0x00000031: 'BC1 / DXT1',
             0x00000431: 'BC1 / DXT1',
             0x00000032: 'BC2 / DXT3',
@@ -119,6 +117,7 @@ def find_name(f, name_pos):
 
     while char != b"\x00":
         name += char
+        if name_pos + i == len(f): break  # Prevent it from looping forever
         
         char = f[name_pos + i:name_pos + i + 1]
         i += 1
