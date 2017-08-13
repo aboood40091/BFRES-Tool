@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 4.0
+# Version 4.1
 # Copyright © 2017 Stella/AboodXD
 
 # This file is part of BFRES Tool.
@@ -540,7 +540,7 @@ def main():
 
     print("(C) 2017 Stella/AboodXD")
 
-    top.title("BFRES Tool INJECT v4.0")
+    top.title("BFRES Tool INJECT v4.1")
     filemenu.add_command(label="Open", command=openfile)
     menubar.add_cascade(label="File", menu=filemenu)
 
