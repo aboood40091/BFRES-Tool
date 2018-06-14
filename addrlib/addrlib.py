@@ -42,7 +42,7 @@ def swizzleSurf(width, height, height_, format_, tileMode, swizzle_,
 
             pos_ = (y * width + x) * bytesPerPixel
 
-            if pos_ + bytesPerPixel < len(data) and pos + bytesPerPixel < len(data):
+            if pos_ + bytesPerPixel <= len(data) and pos + bytesPerPixel <= len(data):
                 if swizzle == 0:
                     result[pos_:pos_ + bytesPerPixel] = data[pos:pos + bytesPerPixel]
 

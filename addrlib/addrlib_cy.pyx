@@ -59,7 +59,7 @@ cdef bytes swizzleSurf(u32 width, u32 height, u32 height_, u32 format_, u32 tile
 
                 pos_ = (y * width + x) * bytesPerPixel
 
-                if pos_ + bytesPerPixel < dataSize and pos + bytesPerPixel < dataSize:
+                if pos_ + bytesPerPixel <= dataSize and pos + bytesPerPixel <= dataSize:
                     if swizzle == 0:
                         memcpy(result + pos_, data + pos, bytesPerPixel)
 
