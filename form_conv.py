@@ -47,6 +47,15 @@ def _swapRB_rgba4(pixel):
     return (alpha << 12) | (red << 8) | (green << 4) | blue
 
 
+def _swapRB_argb4(pixel):
+    alpha = pixel & 0xF
+    red = (pixel & 0xF0) >> 4
+    green = (pixel & 0xF00) >> 8
+    blue = (pixel & 0xF000) >> 12
+
+    return (red << 12) | (green << 8) | (blue << 4) | alpha
+
+
 def swapRB_16bpp(data, format_):
     numPixels = len(data) // 2
 
@@ -64,8 +73,33 @@ def swapRB_16bpp(data, format_):
         elif format_ == 'rgb5a1':
             new_pixel = _swapRB_rgb5a1(pixel)
 
-        else:
+        elif format_ == 'rgba4':
             new_pixel = _swapRB_rgba4(pixel)
+
+        else:
+            new_pixel = _swapRB_argb4(pixel)
+
+        new_data[2 * i + 1] = (new_pixel & 0xFF00) >> 8
+        new_data[2 * i + 0] = new_pixel & 0xFF
+
+    return bytes(new_data)
+
+
+def rgba4_to_argb4(data):
+    numPixels = len(data) // 2
+
+    new_data = bytearray(numPixels * 2)
+
+    for i in range(numPixels):
+        pixel = (
+            (data[2 * i + 1] << 8) |
+            data[2 * i + 0]
+        )
+
+        rgb = (pixel & 0xFFF)
+        alpha = (pixel & 0xF000) >> 12
+
+        new_pixel = (rgb << 4) | alpha
 
         new_data[2 * i + 1] = (new_pixel & 0xFF00) >> 8
         new_data[2 * i + 0] = new_pixel & 0xFF

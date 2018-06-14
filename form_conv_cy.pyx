@@ -65,6 +65,16 @@ cdef u16 _swapRB_rgba4(u16 pixel):
     return <u16>((alpha << 12) | (red << 8) | (green << 4) | blue)
 
 
+cdef u16 _swapRB_argb4(u16 pixel):
+    cdef:
+        u8 alpha = pixel & 0xF
+        u8 red = (pixel & 0xF0) >> 4
+        u8 green = (pixel & 0xF00) >> 8
+        u8 blue = (pixel & 0xF000) >> 12
+
+    return <u16>((red << 12) | (green << 8) | (blue << 4) | alpha)
+
+
 cpdef bytes swapRB_16bpp(bytes data, str format_):
     cdef:
         u32 numPixels = len(data) // 2
@@ -86,8 +96,41 @@ cpdef bytes swapRB_16bpp(bytes data, str format_):
             elif format_ == 'rgb5a1':
                 new_pixel = _swapRB_rgb5a1(pixel)
 
-            else:
+            elif format_ == 'rgba4':
                 new_pixel = _swapRB_rgba4(pixel)
+
+            else:
+                new_pixel = _swapRB_argb4(pixel)
+
+            new_data[2 * i + 1] = (new_pixel & 0xFF00) >> 8
+            new_data[2 * i + 0] = new_pixel & 0xFF
+
+        return bytes(<u8[:numPixels * 2]>new_data)
+
+    finally:
+        free(new_data)
+
+
+cpdef bytes rgba4_to_argb4(bytes data):
+    cdef:
+        u32 numPixels = len(data) // 2
+
+        u8 *new_data = <u8 *>malloc(numPixels * 2)
+        u8 alpha
+        u16 rgb, pixel, new_pixel
+        u32 i
+
+    try:
+        for i in range(numPixels):
+            pixel = (
+                (data[2 * i + 1] << 8) |
+                data[2 * i + 0]
+            )
+
+            rgb = (pixel & 0xFFF)
+            alpha = (pixel & 0xF000) >> 12
+
+            new_pixel = (rgb << 4) | alpha
 
             new_data[2 * i + 1] = (new_pixel & 0xFF00) >> 8
             new_data[2 * i + 0] = new_pixel & 0xFF
