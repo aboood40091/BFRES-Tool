@@ -1,112 +1,151 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright © 2016-2017 Stella/AboodXD
+# Copyright © 2016-2018 AboodXD
 
-cpdef bytes toGX2rgb5a1(bytes data):
-    cdef bytearray new_data = bytearray(len(data))
+################################################################
+################################################################
 
-    cdef unsigned int i
-    cdef unsigned int pixel
-    cdef unsigned int red, green, blue, alpha
-    cdef unsigned int new_pixel
-
-    for i in range(len(data) // 2):
-        pixel = (data[2*i] << 8) | data[2*i+1]
-
-        red = (pixel >> 10) & 0x1F
-        green = (pixel >> 5) & 0x1F
-        blue = pixel & 0x1F
-        alpha = (pixel >> 15) & 1
-
-        new_pixel = (red << 11) | (green << 6) | (blue << 1) | alpha
-
-        new_data[2*i:2*i+2] = new_pixel.to_bytes(2, "big")
-
-    return bytes(new_data)
+from cpython cimport array
+from cython cimport view
+from libc.stdlib cimport malloc, free
 
 
-cpdef bytes toDDSrgb5a1(bytearray data):
-    cdef bytearray new_data = bytearray(len(data))
-
-    cdef unsigned int i
-    cdef unsigned int pixel
-    cdef unsigned int red, green, blue, alpha
-    cdef unsigned int new_pixel
-
-    for i in range(len(data) // 2):
-        pixel = (data[2*i] << 8) | data[2*i+1]
-
-        red = (pixel >> 11) & 0x1F
-        green = (pixel >> 6) & 0x1F
-        blue = (pixel >> 1) & 0x1F
-        alpha = pixel & 1
-
-        new_pixel = (red << 10) | (green << 5) | blue | (alpha << 15)
-
-        new_data[2*i:2*i+2] = new_pixel.to_bytes(2, "big")
-
-    return bytes(new_data)
+ctypedef unsigned char u8
+ctypedef unsigned short u16
+ctypedef unsigned int u32
 
 
-cpdef bytes toGX2rgba4(bytes data):
-    cdef bytearray new_data = bytearray(len(data))
+cpdef bytes rgb8torgbx8(bytearray data):
+    cdef:
+        u32 numPixels = len(data) // 3
 
-    cdef unsigned int i
-    cdef unsigned int pixel
-    cdef unsigned int red, green, blue, alpha
-    cdef unsigned int new_pixel
+        u8 *new_data = <u8 *>malloc(numPixels * 4)
+        u32 i
 
-    for i in range(len(data) // 2):
-        pixel = (data[2*i] << 8) | data[2*i+1]
+    try:
+        for i in range(numPixels):
+            new_data[4 * i + 0] = data[3 * i + 0]
+            new_data[4 * i + 1] = data[3 * i + 1]
+            new_data[4 * i + 2] = data[3 * i + 2]
+            new_data[4 * i + 3] = 0xFF
 
-        red = (pixel >> 8) & 0xF
-        green = (pixel >> 4) & 0xF
-        blue = pixel & 0xF
-        alpha = (pixel >> 12) & 0xF
+        return bytes(<u8[:numPixels * 4]>new_data)
 
-        new_pixel = (red << 12) | (green << 8) | (blue << 4) | alpha
-
-        new_data[2*i:2*i+2] = new_pixel.to_bytes(2, "big")
-
-    return bytes(new_data)
+    finally:
+        free(new_data)
 
 
-cpdef bytes toDDSrgba4(bytearray data):
-    cdef bytearray new_data = bytearray(len(data))
+cdef u16 _swapRB_rgb565(u16 pixel):
+    cdef:
+        u8 red = pixel & 0x1F
+        u8 green = (pixel & 0x7E0) >> 5
+        u8 blue = (pixel & 0xF800) >> 11
 
-    cdef unsigned int i
-    cdef unsigned int pixel
-    cdef unsigned int red, green, blue, alpha
-    cdef unsigned int new_pixel
-
-    for i in range(len(data) // 2):
-        pixel = (data[2*i] << 8) | data[2*i+1]
-
-        red = (pixel >> 12) & 0xF
-        green = (pixel >> 8) & 0xF
-        blue = (pixel >> 4) & 0xF
-        alpha = pixel & 0xF
-
-        new_pixel = (red << 8) | (green << 4) | blue | (alpha << 12)
-
-        new_data[2*i:2*i+2] = new_pixel.to_bytes(2, "big")
-
-    return bytes(new_data)
+    return <u16>((red << 11) | (green << 5) | blue)
 
 
-cpdef bytes rgb8torgbx8(bytes data):
-    cdef bytearray new_data = bytearray((len(data) // 3) * 4)
+cdef u16 _swapRB_rgb5a1(u16 pixel):
+    cdef:
+        u8 red = pixel & 0x1F
+        u8 green = (pixel & 0x3E0) >> 5
+        u8 blue = (pixel & 0x7c00) >> 10
+        u8 alpha = (pixel & 0x8000) >> 15
 
-    cdef unsigned int i
-    cdef unsigned int pixel
-    cdef unsigned int new_pixel
+    return <u16>((alpha << 15) | (red << 10) | (green << 5) | blue)
 
-    for i in range(len(data) // 3):
-        pixel = (data[3*i] << 16) | (data[3*i+1] << 8) | data[3*i+2]
 
-        new_pixel = (pixel << 8) | 255
+cdef u16 _swapRB_rgba4(u16 pixel):
+    cdef:
+        u8 red = pixel & 0xF
+        u8 green = (pixel & 0xF0) >> 4
+        u8 blue = (pixel & 0xF00) >> 8
+        u8 alpha = (pixel & 0xF000) >> 12
 
-        new_data[4*i:4*i+4] = new_pixel.to_bytes(4, "big")
+    return <u16>((alpha << 12) | (red << 8) | (green << 4) | blue)
 
-    return bytes(new_data)
+
+cpdef bytes swapRB_16bpp(bytes data, str format_):
+    cdef:
+        u32 numPixels = len(data) // 2
+
+        u8 *new_data = <u8 *>malloc(numPixels * 2)
+        u16 pixel, new_pixel
+        u32 i
+
+    try:
+        for i in range(numPixels):
+            pixel = (
+                (data[2 * i + 1] << 8) |
+                data[2 * i + 0]
+            )
+
+            if format_ == 'rgb565':
+                new_pixel = _swapRB_rgb565(pixel)
+
+            elif format_ == 'rgb5a1':
+                new_pixel = _swapRB_rgb5a1(pixel)
+
+            else:
+                new_pixel = _swapRB_rgba4(pixel)
+
+            new_data[2 * i + 1] = (new_pixel & 0xFF00) >> 8
+            new_data[2 * i + 0] = new_pixel & 0xFF
+
+        return bytes(<u8[:numPixels * 2]>new_data)
+
+    finally:
+        free(new_data)
+
+
+cdef u32 _swapRB_bgr10a2(u32 pixel):
+    cdef:
+        u16 red = (pixel & 0x3FF00000) >> 20
+        u16 green = (pixel & 0xFFC00) >> 10
+        u16 blue = pixel & 0x3FF
+        u8 alpha = (pixel & 0xC0000000) >> 30
+
+    return <u32>((alpha << 30) | (blue << 20) | (green << 10) | red)
+
+
+cdef u32 _swapRB_rgba8(u32 pixel):
+    cdef:
+        u8 red = pixel & 0xFF
+        u8 green = (pixel & 0xFF00) >> 8
+        u8 blue = (pixel & 0xFF0000) >> 16
+        u8 alpha = (pixel & 0xFF000000) >> 24
+
+    return <u32>((alpha << 24) | (red << 16) | (green << 8) | blue)
+
+
+cpdef bytes swapRB_32bpp(bytes data, str format_):
+    cdef:
+        u32 numPixels = len(data) // 4
+
+        u8 *new_data = <u8 *>malloc(numPixels * 4)
+        u32 i, pixel, new_pixel
+
+    try:
+        for i in range(numPixels):
+            pixel = (
+                (data[4 * i + 3] << 24) |
+                (data[4 * i + 2] << 16) |
+                (data[4 * i + 1] << 8) |
+                data[4 * i + 0]
+            )
+
+            if format_ == 'bgr10a2':
+                new_pixel = _swapRB_bgr10a2(pixel)
+
+            else:
+                new_pixel = _swapRB_rgba8(pixel)
+
+            new_data[4 * i + 3] = (new_pixel & 0xFF000000) >> 24
+            new_data[4 * i + 2] = (new_pixel & 0xFF0000) >> 16
+            new_data[4 * i + 1] = (new_pixel & 0xFF00) >> 8
+            new_data[4 * i + 0] = new_pixel & 0xFF
+
+        return bytes(<u8[:numPixels * 4]>new_data)
+
+    finally:
+        free(new_data)

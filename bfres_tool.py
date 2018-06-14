@@ -27,17 +27,8 @@ from tkinter import Tk, Frame, Button, Canvas, Scrollbar, Menu
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as messagebox
 
-try:
-    import addrlib_cy as addrlib
-except ImportError:
-    import addrlib
-
+import addrlib
 import dds
-
-try:
-    import form_conv_cy as form_conv
-except ImportError:
-    import form_conv
 
 top = Tk()
 canvas = Canvas(top)
@@ -268,17 +259,11 @@ def FTEXtoDDS(ftex_pos, f, name, folder):
 
             if format_ in BCn_formats:
                 size = ((max(1, width >> level) + 3) >> 2) * ((max(1, height >> level) + 3) >> 2) * bpp
+
             else:
                 size = max(1, width >> level) * max(1, height >> level) * bpp
 
-            if format_ == 0xa:
-                data = form_conv.toDDSrgb5a1(deswizzled[:size])
-
-            elif format_ == 0xb:
-                data = form_conv.toDDSrgba4(deswizzled[:size])
-
-            else:
-                data = deswizzled[:size]
+            data = deswizzled[:size]
 
             result.append(data)
 
