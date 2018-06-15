@@ -9,9 +9,6 @@
 ################################################################
 
 from cpython cimport array
-from cython cimport view
-from libc.stdlib cimport malloc, free
-from libc.string cimport memcpy
 
 
 ctypedef unsigned char u8
@@ -32,44 +29,42 @@ cdef bytes swizzleSurf(u32 width, u32 height, u32 height_, u32 format_, u32 tile
 
     cdef:
         u32 bytesPerPixel = bitsPerPixel // 8
-        u8 *result = <u8 *>malloc(dataSize)
+        bytearray result = bytearray(dataSize)
 
-        u32 pipeSwizzle, bankSwizzle, y, x, pos_
+        u32 pipeSwizzle, bankSwizzle, y, x, pos_, n
         u64 pos
 
     if format_ in BCn_formats:
         width = (width + 3) // 4
         height = (height + 3) // 4
 
-    try:
-        for y in range(height):
-            for x in range(width):
-                pipeSwizzle = (swizzle_ >> 8) & 1
-                bankSwizzle = (swizzle_ >> 9) & 3
+    for y in range(height):
+        for x in range(width):
+            pipeSwizzle = (swizzle_ >> 8) & 1
+            bankSwizzle = (swizzle_ >> 9) & 3
 
-                if tileMode in [0, 1]:
-                    pos = computeSurfaceAddrFromCoordLinear(x, y, bitsPerPixel, pitch)
+            if tileMode in [0, 1]:
+                pos = computeSurfaceAddrFromCoordLinear(x, y, bitsPerPixel, pitch)
 
-                elif tileMode in [2, 3]:
-                    pos = computeSurfaceAddrFromCoordMicroTiled(x, y, bitsPerPixel, pitch, tileMode)
+            elif tileMode in [2, 3]:
+                pos = computeSurfaceAddrFromCoordMicroTiled(x, y, bitsPerPixel, pitch, tileMode)
+
+            else:
+                pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bitsPerPixel, pitch, height_, tileMode,
+                                                            pipeSwizzle, bankSwizzle)
+
+            pos_ = (y * width + x) * bytesPerPixel
+
+            if pos_ + bytesPerPixel <= dataSize and pos + bytesPerPixel <= dataSize:
+                if swizzle == 0:
+                    for n in range(bytesPerPixel):
+                        result[pos_ + n] = <u8>data[pos + n]
 
                 else:
-                    pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bitsPerPixel, pitch, height_, tileMode,
-                                                                pipeSwizzle, bankSwizzle)
+                    for n in range(bytesPerPixel):
+                        result[pos + n] = <u8>data[pos_ + n]
 
-                pos_ = (y * width + x) * bytesPerPixel
-
-                if pos_ + bytesPerPixel <= dataSize and pos + bytesPerPixel <= dataSize:
-                    if swizzle == 0:
-                        memcpy(result + pos_, data + pos, bytesPerPixel)
-
-                    else:
-                        memcpy(result + pos, data + pos_, bytesPerPixel)
-
-        return bytes(<u8[:dataSize]>result)
-
-    finally:
-        free(result)
+    return bytes(result)
 
 
 cpdef bytes deswizzle(u32 width, u32 height, u32 height_, u32 format_, u32 tileMode, u32 swizzle_,
