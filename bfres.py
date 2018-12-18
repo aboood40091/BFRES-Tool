@@ -313,7 +313,7 @@ def inject(tex, tileMode, swizzle_, SRGB, importMips, oldImageSize, oldMipSize, 
         if tex.numMips < numMips + 1:
             QtWidgets.QMessageBox.warning(
                 None, "Warning",
-                "This DDS file has more mipmaps (%d) than the original image (%d)!"
+                "This DDS file has more mipmaps (%d) than the original image (%d)!\n"
                 "Not all mipmaps might be imported." % (numMips, tex.numMips - 1),
             )
 
@@ -390,7 +390,7 @@ def inject(tex, tileMode, swizzle_, SRGB, importMips, oldImageSize, oldMipSize, 
     tex.width = width
     tex.height = height
     tex.depth = 1
-    tex.numMips = mipLevel + 1
+    tex.numMips = mipLevel
     tex.format = format_
     tex.aa = 0
     tex.use = 1
