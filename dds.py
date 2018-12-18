@@ -26,7 +26,15 @@
 """dds.py: DDS reader and header generator."""
 
 import struct
-import gx2FormConv as formConv
+
+try:
+    import pyximport
+    pyximport.install()
+
+    import gx2FormConv_cy as formConv
+
+except ImportError:
+    import gx2FormConv as formConv
 
 
 def readDDS(f, SRGB):
