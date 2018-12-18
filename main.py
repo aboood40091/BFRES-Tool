@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 5.1
-# Copyright © 2017-2018 AboodXD
+# Version 0.1
+# Copyright © 2018 AboodXD
 
 # This file is part of BFRES Tool.
 
@@ -97,6 +97,10 @@ class MainWindow(QtWidgets.QWidget):
 
         self.openbtn = QtWidgets.QPushButton("Open")
         self.openbtn.clicked.connect(self.openFile)
+
+        self.openfolderbtn = QtWidgets.QPushButton("Open Folder")
+        self.openfolderbtn.clicked.connect(self.openFolder)
+        self.openfolderbtn.setEnabled(False)
 
         self.openLnEdt = QtWidgets.QLineEdit()
         self.openLnEdt.setEnabled(False)
@@ -211,6 +215,7 @@ class MainWindow(QtWidgets.QWidget):
         
         openLayout = QtWidgets.QHBoxLayout()
         openLayout.addWidget(self.openbtn)
+        openLayout.addWidget(self.openfolderbtn)
         openLayout.addWidget(self.openLnEdt)
         
         dimLayout = QtWidgets.QHBoxLayout()
@@ -399,6 +404,36 @@ class MainWindow(QtWidgets.QWidget):
 
         self.comboBox.clear()
 
+    def openFolder(self):
+        folder = QtWidgets.QFileDialog.getExistingDirectory(None, "Select Directory")
+        if not folder:
+            return False
+        files = [file for file in os.listdir(folder) if file.endswith(".dds")]
+        if files == []:
+            QtWidgets.QMessageBox.about(self, "Open Folder", "No .dds files found in selected directory")
+            return False
+        files = [x.strip(".dds") for x in files if not self.comboBox.findText(x.strip(".dds")) == -1]
+        confirm = QtWidgets.QMessageBox.question(self, 'Open Folder', "Do you want to replace the following files?\n" + 
+                    "".join([str(x) + "\n" for x in files]), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        if confirm == QtWidgets.QMessageBox.No:
+            return False
+
+        preferences = self.injectPreferences()
+        if preferences == False:
+            return False
+
+        for file in files:
+            index = self.comboBox.findText(file)
+            tex = self.textures[index]
+            oldImageSize, oldMipSize = globals.texSizes[index]
+
+            tex_ = BFRES.inject(tex, preferences[0], 0, preferences[1], preferences[2], oldImageSize, oldMipSize, folder + "/" + file + ".dds")
+            if tex_:
+                self.textures[index] = tex_
+                BFRES.writeTex(self.openLnEdt.text(), tex_)
+
+                self.updateTexInfo(index)
+
     def openFile(self):
         file = QtWidgets.QFileDialog.getOpenFileName(None, "Open File", "", "BFRES (*.bfres)")[0]
         if not file:
@@ -419,6 +454,8 @@ class MainWindow(QtWidgets.QWidget):
                 self.exportAsButton.setEnabled(True)
                 self.exportAllButton.setEnabled(True)
                 self.injectButton.setEnabled(True)
+
+                self.openfolderbtn.setEnabled(True)
 
                 self.comboBox.setCurrentIndex(0)
 
@@ -576,6 +613,27 @@ class MainWindow(QtWidgets.QWidget):
         index = self.comboBox.currentIndex()
         tex = self.textures[index]
 
+        preferences = self.injectPreferences()
+        if preferences == False:
+            return False
+
+        tileMode = preferences[0]
+        SRGB = preferences[1]
+        importMips = preferences[2]
+
+        oldImageSize, oldMipSize = globals.texSizes[index]
+
+        tex_ = BFRES.inject(tex, tileMode, 0, SRGB, importMips, oldImageSize, oldMipSize, file)
+        if tex_:
+            self.textures[index] = tex_
+            BFRES.writeTex(self.openLnEdt.text(), tex_)
+
+            self.updateTexInfo(index)
+
+    def injectPreferences(self):
+        index = self.comboBox.currentIndex()
+        tex = self.textures[index]
+
         optionsDialog = QtWidgets.QDialog(self)
         optionsDialog.setWindowTitle("Options")
 
@@ -630,15 +688,7 @@ class MainWindow(QtWidgets.QWidget):
         tileMode = tileModeComboBox.currentIndex()
         SRGB = SRGBCheckBox.isChecked()
         importMips = importMipsCheckBox.isChecked()
-
-        oldImageSize, oldMipSize = globals.texSizes[index]
-
-        tex_ = BFRES.inject(tex, tileMode, 0, SRGB, importMips, oldImageSize, oldMipSize, file)
-        if tex_:
-            self.textures[index] = tex_
-            BFRES.writeTex(self.openLnEdt.text(), tex_)
-
-            self.updateTexInfo(index)
+        return [tileMode, SRGB, importMips]
 
 
 def main():
