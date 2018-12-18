@@ -1,3 +1,3 @@
-# BFRES-Tool v5.0
+# BFRES-Tool v5.1
   
 A tool for extracting/injecting textures to Wii U BFRES files.
