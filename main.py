@@ -31,7 +31,7 @@ if currentRunningVersion < minimum:
 
     raise Exception(errormsg)
 
-import os.path
+import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5 import QtWidgets
@@ -97,10 +97,6 @@ class MainWindow(QtWidgets.QWidget):
 
         self.openbtn = QtWidgets.QPushButton("Open")
         self.openbtn.clicked.connect(self.openFile)
-
-        self.openfolderbtn = QtWidgets.QPushButton("Open Folder")
-        self.openfolderbtn.clicked.connect(self.openFolder)
-        self.openfolderbtn.setEnabled(False)
 
         self.openLnEdt = QtWidgets.QLineEdit()
         self.openLnEdt.setEnabled(False)
@@ -215,7 +211,6 @@ class MainWindow(QtWidgets.QWidget):
         
         openLayout = QtWidgets.QHBoxLayout()
         openLayout.addWidget(self.openbtn)
-        openLayout.addWidget(self.openfolderbtn)
         openLayout.addWidget(self.openLnEdt)
         
         dimLayout = QtWidgets.QHBoxLayout()
@@ -319,6 +314,15 @@ class MainWindow(QtWidgets.QWidget):
         self.injectButton.setText("Replace")
         self.injectButton.clicked.connect(self.injectTex)
 
+        self.injectAllButton = QtWidgets.QPushButton()
+        self.injectAllButton.setEnabled(False)
+        self.injectAllButton.setText("Replace All")
+        self.injectAllButton.clicked.connect(self.injectAll)
+        
+        injectLayout = QtWidgets.QHBoxLayout()
+        injectLayout.addWidget(self.injectButton)
+        injectLayout.addWidget(self.injectAllButton)
+
         fileLayout = QtWidgets.QVBoxLayout()
         fileLayout.addLayout(openLayout)
         fileLayout.addWidget(self.Separator())
@@ -345,7 +349,7 @@ class MainWindow(QtWidgets.QWidget):
         fileLayout.addWidget(self.comboBox)
         fileLayout.addWidget(self.Separator())
         fileLayout.addLayout(exportLayout)
-        fileLayout.addWidget(self.injectButton)
+        fileLayout.addLayout(injectLayout)
 
         self.createPreviewer()
 
@@ -401,38 +405,9 @@ class MainWindow(QtWidgets.QWidget):
         self.exportAsButton.setEnabled(False)
         self.exportAllButton.setEnabled(False)
         self.injectButton.setEnabled(False)
+        self.injectAllButton.setEnabled(False)
 
         self.comboBox.clear()
-
-    def openFolder(self):
-        folder = QtWidgets.QFileDialog.getExistingDirectory(None, "Select Directory")
-        if not folder:
-            return False
-        files = [file for file in os.listdir(folder) if file.endswith(".dds")]
-        if files == []:
-            QtWidgets.QMessageBox.about(self, "Open Folder", "No .dds files found in selected directory")
-            return False
-        files = [x.strip(".dds") for x in files if not self.comboBox.findText(x.strip(".dds")) == -1]
-        confirm = QtWidgets.QMessageBox.question(self, 'Open Folder', "Do you want to replace the following files?\n" + 
-                    "".join([str(x) + "\n" for x in files]), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-        if confirm == QtWidgets.QMessageBox.No:
-            return False
-
-        preferences = self.injectPreferences()
-        if preferences == False:
-            return False
-
-        for file in files:
-            index = self.comboBox.findText(file)
-            tex = self.textures[index]
-            oldImageSize, oldMipSize = globals.texSizes[index]
-
-            tex_ = BFRES.inject(tex, preferences[0], 0, preferences[1], preferences[2], oldImageSize, oldMipSize, folder + "/" + file + ".dds")
-            if tex_:
-                self.textures[index] = tex_
-                BFRES.writeTex(self.openLnEdt.text(), tex_)
-
-                self.updateTexInfo(index)
 
     def openFile(self):
         file = QtWidgets.QFileDialog.getOpenFileName(None, "Open File", "", "BFRES (*.bfres)")[0]
@@ -454,8 +429,7 @@ class MainWindow(QtWidgets.QWidget):
                 self.exportAsButton.setEnabled(True)
                 self.exportAllButton.setEnabled(True)
                 self.injectButton.setEnabled(True)
-
-                self.openfolderbtn.setEnabled(True)
+                self.injectAllButton.setEnabled(True)
 
                 self.comboBox.setCurrentIndex(0)
 
@@ -605,56 +579,34 @@ class MainWindow(QtWidgets.QWidget):
         for tex in self.textures:
             BFRES.extract(tex, self.BFRESPath, 0, True)
 
-    def injectTex(self):
-        file = QtWidgets.QFileDialog.getOpenFileName(None, "Open File", "", "DDS (*.dds)")[0]
-        if not file:
-            return False
-
-        index = self.comboBox.currentIndex()
-        tex = self.textures[index]
-
-        preferences = self.injectPreferences()
-        if preferences == False:
-            return False
-
-        tileMode = preferences[0]
-        SRGB = preferences[1]
-        importMips = preferences[2]
-
-        oldImageSize, oldMipSize = globals.texSizes[index]
-
-        tex_ = BFRES.inject(tex, tileMode, 0, SRGB, importMips, oldImageSize, oldMipSize, file)
-        if tex_:
-            self.textures[index] = tex_
-            BFRES.writeTex(self.openLnEdt.text(), tex_)
-
-            self.updateTexInfo(index)
-
-    def injectPreferences(self):
-        index = self.comboBox.currentIndex()
-        tex = self.textures[index]
-
+    def injectPreferences(self, tex=None):
         optionsDialog = QtWidgets.QDialog(self)
         optionsDialog.setWindowTitle("Options")
 
-        tileModeLabel = QtWidgets.QLabel()
-        tileModeLabel.setText("Tiling mode:")
+        layout = QtWidgets.QVBoxLayout()
 
-        tileModeComboBox = QtWidgets.QComboBox()
-        tileModeComboBox.addItems([globals.tileModes[tileMode] for tileMode in range(17)])
+        if tex:
+            tileModeLabel = QtWidgets.QLabel()
+            tileModeLabel.setText("Tiling mode:")
 
-        if tex.tileMode in globals.tileModes:
-            tileModeComboBox.setCurrentIndex(tex.tileMode)
-        
-        tileModeLayout = QtWidgets.QHBoxLayout()
-        tileModeLayout.addWidget(tileModeLabel)
-        tileModeLayout.addWidget(tileModeComboBox)
+            tileModeComboBox = QtWidgets.QComboBox()
+            tileModeComboBox.addItems([globals.tileModes[tileMode] for tileMode in range(17)])
+
+            if tex.tileMode in globals.tileModes:
+                tileModeComboBox.setCurrentIndex(tex.tileMode)
+
+            tileModeLayout = QtWidgets.QHBoxLayout()
+            tileModeLayout.addWidget(tileModeLabel)
+            tileModeLayout.addWidget(tileModeComboBox)
+
+            layout.addLayout(tileModeLayout)
 
         SRGBLabel = QtWidgets.QLabel()
         SRGBLabel.setText("Use SRGB when possible:")
 
         SRGBCheckBox = QtWidgets.QCheckBox()
-        SRGBCheckBox.setChecked(tex.format & 0xFF == 6)
+        if tex:
+            SRGBCheckBox.setChecked(tex.format & 0xFF == 6)
         
         SRGBLayout = QtWidgets.QHBoxLayout()
         SRGBLayout.addWidget(SRGBLabel)
@@ -674,8 +626,6 @@ class MainWindow(QtWidgets.QWidget):
         buttonBox.accepted.connect(optionsDialog.accept)
         buttonBox.rejected.connect(optionsDialog.reject)
 
-        layout = QtWidgets.QVBoxLayout()
-        layout.addLayout(tileModeLayout)
         layout.addLayout(SRGBLayout)
         layout.addLayout(importMipsLayout)
         layout.addWidget(buttonBox)
@@ -683,12 +633,78 @@ class MainWindow(QtWidgets.QWidget):
         optionsDialog.setLayout(layout)
 
         if optionsDialog.exec_() != QtWidgets.QDialog.Accepted:
-            return False
+            return []
 
-        tileMode = tileModeComboBox.currentIndex()
+        tileMode = 0
+        if tex:
+            tileMode = tileModeComboBox.currentIndex()
+
         SRGB = SRGBCheckBox.isChecked()
         importMips = importMipsCheckBox.isChecked()
+
         return [tileMode, SRGB, importMips]
+
+    def injectTex(self):
+        file = QtWidgets.QFileDialog.getOpenFileName(None, "Open File", "", "DDS (*.dds)")[0]
+        if not file:
+            return False
+
+        index = self.comboBox.currentIndex()
+        tex = self.textures[index]
+
+        preferences = self.injectPreferences(tex)
+        if not preferences:
+             return False
+
+        oldImageSize, oldMipSize = globals.texSizes[index]
+
+        tex_ = BFRES.inject(tex, preferences[0], 0, preferences[1], preferences[2], oldImageSize, oldMipSize, file)
+        if tex_:
+            self.textures[index] = tex_
+            BFRES.writeTex(self.openLnEdt.text(), tex_)
+
+            self.updateTexInfo(index)
+
+    def injectAll(self):
+        folder = QtWidgets.QFileDialog.getExistingDirectory(None, "Select Directory")
+        if not folder:
+            return False
+
+        files = [file for file in os.listdir(folder) if file[-4:] == ".dds"]
+        if not files:
+            QtWidgets.QMessageBox.about(self, "Files not found", "No .dds files found in selected directory")
+            return False
+
+        files = [file for file in files if self.comboBox.findText(file[:-4]) != -1]
+
+        confirm = QtWidgets.QMessageBox.question(
+            self, 'Confirm',
+            "Do you want to replace the following files?\n\n"
+            + '\n'.join([file[:-4] for i, file in enumerate(files) if i < 9])
+            + ("\n..." if len(files) >= 10 else ''),
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No,
+        )
+
+        if confirm != QtWidgets.QMessageBox.Yes:
+             return False
+
+        preferences = self.injectPreferences()
+        if not preferences:
+            return False
+
+        for file in files:
+            index = self.comboBox.findText(file[:-4])
+            tex = self.textures[index]
+
+            oldImageSize, oldMipSize = globals.texSizes[index]
+
+            tex_ = BFRES.inject(tex, tex.tileMode, 0, preferences[1], preferences[2], oldImageSize, oldMipSize, os.path.join(folder, file))
+            if tex_:
+                self.textures[index] = tex_
+                BFRES.writeTex(self.openLnEdt.text(), tex_)
+
+                if index == self.comboBox.currentIndex():
+                    self.updateTexInfo(index)
 
 
 def main():
