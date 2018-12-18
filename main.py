@@ -583,7 +583,7 @@ class MainWindow(QtWidgets.QWidget):
         tileModeLabel.setText("Tiling mode:")
 
         tileModeComboBox = QtWidgets.QComboBox()
-        tileModeComboBox.addItems([str(tileMode) for tileMode in range(17)])
+        tileModeComboBox.addItems([globals.tileModes[tileMode] for tileMode in range(17)])
 
         if tex.tileMode in globals.tileModes:
             tileModeComboBox.setCurrentIndex(tex.tileMode)
