@@ -381,6 +381,7 @@ def inject(tex, tileMode, swizzle_, SRGB, importMips, oldImageSize, oldMipSize, 
 
         if mipSize > oldMipSize:
             mipSize -= surfInfo.surfSize + len(dataAlignBytes)
+            mipLevel -= 1
             break
 
         result.append(bytearray(dataAlignBytes) + addrlib.swizzle(
@@ -391,7 +392,7 @@ def inject(tex, tileMode, swizzle_, SRGB, importMips, oldImageSize, oldMipSize, 
     tex.width = width
     tex.height = height
     tex.depth = 1
-    tex.numMips = mipLevel
+    tex.numMips = mipLevel + 1
     tex.format = format_
     tex.aa = 0
     tex.use = 1
