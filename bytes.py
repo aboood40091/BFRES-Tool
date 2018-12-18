@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# BNTX Extractor GUI
-# Version 0.1
+# BFRES Tool
+# Version 5.1
 # Copyright © 2018 AboodXD
 
-# This file is part of BNTX Extractor GUI.
+# This file is part of BFRES Tool.
 
-# BNTX Extractor GUI is free software: you can redistribute it and/or modify
+# BFRES Tool is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# BNTX Extractor GUI is distributed in the hope that it will be useful,
+# BFRES Tool is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.

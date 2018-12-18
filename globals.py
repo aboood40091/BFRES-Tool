@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 5.0
+# Version 5.1
 # Copyright © 2017-2018 AboodXD
 
 # This file is part of BFRES Tool.
@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Version = '5.0'
+Version = '5.1'
 
 formats = {
     0x00000001: 'GX2_SURFACE_FORMAT_TC_R8_UNORM',

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # BFRES Tool
-# Version 5.0
+# Version 5.1
 # Copyright © 2017-2018 AboodXD
 
 # This file is part of BFRES Tool.
