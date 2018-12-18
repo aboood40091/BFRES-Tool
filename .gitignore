@@ -11,3 +11,4 @@ build_form_conv_cy.bat
 *.sbfres
 *.spec
 *.szs
+log.txt

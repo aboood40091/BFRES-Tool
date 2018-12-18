@@ -26,15 +26,7 @@
 """dds.py: DDS reader and header generator."""
 
 import struct
-
-try:
-    import pyximport
-
-    pyximport.install()
-    import form_conv_cy as form_conv
-
-except ImportError:
-    import form_conv
+import gx2FormConv as formConv
 
 
 def readDDS(f, SRGB):
@@ -232,7 +224,7 @@ def readDDS(f, SRGB):
     data = bytearray(inb[0x80:0x80 + size + mipSize])
 
     if format_ in [0x1a, 0x41a] and bpp == 3:
-        data = form_conv.rgb8torgbx8(data)
+        data = formConv.rgb8torgbx8(data)
         bpp += 1
         size = width * height * bpp
 
@@ -264,33 +256,33 @@ def generateHeader(num_mipmaps, w, h, format_, compSel, size, compressed):
 
     has_alpha = True
 
-    if format_ == 28:  # ABGR8
+    if format_ == "rgba8":  # ABGR8
         RGB = True
         compSels = {0: 0x000000ff, 1: 0x0000ff00, 2: 0x00ff0000, 3: 0xff000000, 5: 0}
         fmtbpp = 4
 
-    elif format_ == 24:  # A2RGB10
+    elif format_ == "bgr10a2":  # A2RGB10
         RGB = True
         compSels = {0: 0x3ff00000, 1: 0x000ffc00, 2: 0x000003ff, 3: 0xc0000000, 5: 0}
         fmtbpp = 4
 
-    elif format_ == 85:  # BGR565
+    elif format_ == "rgb565":  # BGR565
         RGB = True
         compSels = {0: 0x0000001f, 1: 0x000007e0, 2: 0x0000f800, 3: 0, 5: 0}
         fmtbpp = 2
         has_alpha = False
 
-    elif format_ == 86:  # A1BGR5
+    elif format_ == "rgb5a1":  # A1BGR5
         RGB = True
         compSels = {0: 0x0000001f, 1: 0x000003e0, 2: 0x00007c00, 3: 0x00008000, 5: 0}
         fmtbpp = 2
 
-    elif format_ == 115:  # ABGR4
+    elif format_ == "rgba4":  # ABGR4
         RGB = True
         compSels = {0: 0x0000000f, 1: 0x000000f0, 2: 0x00000f00, 3: 0x0000f000, 5: 0}
         fmtbpp = 2
 
-    elif format_ == 61:  # L8
+    elif format_ == "l8":  # L8
         luminance = True
         compSels = {0: 0x000000ff, 1: 0, 2: 0, 3: 0, 5: 0}
         fmtbpp = 1
@@ -298,12 +290,12 @@ def generateHeader(num_mipmaps, w, h, format_, compSel, size, compressed):
         if compSel[3] != 0:
             has_alpha = False
 
-    elif format_ == 49:  # A8L8
+    elif format_ == "la8":  # A8L8
         luminance = True
         compSels = {0: 0x000000ff, 1: 0x0000ff00, 2: 0, 3: 0, 5: 0}
         fmtbpp = 2
 
-    elif format_ == 112:  # A4L4
+    elif format_ == "la4":  # A4L4
         luminance = True
         compSels = {0: 0x0000000f, 1: 0x000000f0, 2: 0, 3: 0, 5: 0}
         fmtbpp = 1
